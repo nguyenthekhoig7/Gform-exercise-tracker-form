@@ -2,8 +2,6 @@ import streamlit as st
 from datetime import datetime
 
 # Add current directory to path
-# import sys
-# sys.path.append('.')
 from utils import load_config_yaml
 from datetime import time
 
@@ -47,14 +45,7 @@ else:
 st.markdown('### Time')
 
 col1, col2, col3, col4 = st.columns([3, 2, 1, 2])
-# with col1:
-#     st.markdown('Your training was from:')
-# with col2:
-#     start_time = st.time_input('Start Time', value=datetime.now().strftime('%H:%M'))
-# with col3:
-#     st.markdown('to')
-# with col4:
-#     end_time = st.time_input('End Time', value=datetime.now().strftime('%H:%M'))
+
 training_time_range = st.slider("Your training was from:", value=(time(11, 30), time(12, 45)))
 st.write("You're input training time for:", training_time_range)
 
@@ -95,7 +86,6 @@ with st.form(key='my_form'):
                     reps_dropdown = st.number_input('Dropdown Reps', min_value=0, max_value=100, value=0, step=1, key = f"reps_{i}_{j}_dropdown")
 
             # exercise_records.append([exercise_name, weight, sets, reps, notes])
-
 
     # Submit button
     submitted = st.form_submit_button('Submit')
