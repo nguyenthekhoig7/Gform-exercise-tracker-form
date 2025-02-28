@@ -2,7 +2,7 @@ import streamlit as st
 from datetime import datetime
 
 # Add current directory to path
-from utils import load_config_yaml
+from utils import load_config_yaml, filter_exercises_by_group
 from datetime import time
 
 # TODO: 
@@ -47,11 +47,6 @@ else:
     if date is not None:
         date = date.strftime('%Y-%m-%d-%a')
 
-# Convert datetime to string
-# Format aaa_yyyymmdd
-# 
-
-
 # Time input
 st.markdown('### Time')
 
@@ -61,17 +56,17 @@ training_time_range = st.slider("Your training was from:", value=(time(11, 30), 
 training_time_range = [str(time_i) for time_i in training_time_range]
 st.write("You're input training time for:", training_time_range)
 
+# Muscle Group
+st.markdown('### Muscle Group')
+col1, col2 = st.columns([1, 1])
+
+with col1:
+    Primary_Muscle_Group = st.selectbox('Primary Muscle Group', prim_muscle_groups, index=None, placeholder="Select a muscle group", key="prim_muscle_group")
+with col2:
+    Secondary_Muscle_Group = st.selectbox('Secondary Muscle Group', sec_muscle_groups, index=None, placeholder="Select a muscle group", key="sec_muscle_group")
+
 # Exercises input
 with st.form(key='my_form', clear_on_submit = False):
-    # Muscle Group
-    st.markdown('### Muscle Group')
-    col1, col2 = st.columns([1, 1])
-    
-    with col1:
-        Primary_Muscle_Group = st.selectbox('Primary Muscle Group', prim_muscle_groups, index=None, placeholder="Select a muscle group")
-    with col2:
-        Secondary_Muscle_Group = st.selectbox('Secondary Muscle Group', sec_muscle_groups, index=None, placeholder="Select a muscle group")
-
     # Exercise list
     st.markdown('### Exercise List')
     exercise_records = []
@@ -81,7 +76,8 @@ with st.form(key='my_form', clear_on_submit = False):
             st.markdown(f'#### Exercise {i+1} of {exercise_count}')
             col1, col2 = st.columns([4, 1])
             with col1:
-                exercise_name = st.selectbox('Exercise Name', exercise_list, key = f"exercise_name_{i}")
+                filtered_prim_exercises = filter_exercises_by_group(exercise_list, Primary_Muscle_Group, Secondary_Muscle_Group)
+                exercise_name = st.selectbox('Exercise Name', filtered_prim_exercises, key = f"exercise_name_{i}")
             with col2:
                 notes = st.text_area('Notes', value='', height=None, max_chars=None, key = f"notes_{i}")
 
