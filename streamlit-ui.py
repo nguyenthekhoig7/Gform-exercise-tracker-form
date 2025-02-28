@@ -6,13 +6,18 @@ from utils import load_config_yaml
 from datetime import time
 
 # TODO: 
+# Requirements:
 # - record training time range
 # - save result to csv
+
 # - filter exercises based on muscle group
-# - Update Exercise expander: show exercise name
-# - Convert weights from number to dropdown, define dropdown values based on Muscle Group
-# - Update time slider: add option first (morning, afternoon, evening, night) -> display time range
 # - Add a button to add not-shown-exercises
+
+# - Convert weights from number to dropdown, define dropdown values based on Muscle Group
+# Enhancements:
+# - Update time slider: add option first (morning, afternoon, evening, night) -> display time range
+# - Update Exercise expander: show exercise name
+# - Convert JSON to a DB (sqlite might be simplest)
 
 config = load_config_yaml('config.yaml')
 prim_muscle_groups = config['primary_muscle_groups']
@@ -25,31 +30,39 @@ st.set_page_config(page_title='Lifting Data Submission',
                page_icon=':man-lifting-weights:')
 st.title('Lifting Data Submission')
 
-# Date
+# Date input
 st.markdown('### Date')
 
-# 2 options, default is the submission date, other is manual input
 date_options = ['Today (automatic, default)', 'Another day']
 col1, col2 = st.columns([3, 2])
 with col1:
     date_option = col1.radio('Select a date', date_options)
 
 if date_option == date_options[0]:
-    date = datetime.today().strftime('%Y-%m-%d')
+    date = datetime.today().strftime('%Y-%m-%d-%a')
     col2.text("")   
     col2.markdown(f"""\nSelecting date: **{date}**""")
 else:
     date = col2.date_input('Select a date', value=None, min_value=None, max_value=None, key=None)
+    if date is not None:
+        date = date.strftime('%Y-%m-%d-%a')
 
-# Time
+# Convert datetime to string
+# Format aaa_yyyymmdd
+# 
+
+
+# Time input
 st.markdown('### Time')
 
 col1, col2, col3, col4 = st.columns([3, 2, 1, 2])
 
 training_time_range = st.slider("Your training was from:", value=(time(11, 30), time(12, 45)))
+training_time_range = [str(time_i) for time_i in training_time_range]
 st.write("You're input training time for:", training_time_range)
 
-with st.form(key='my_form'):
+# Exercises input
+with st.form(key='my_form', clear_on_submit = False):
     # Muscle Group
     st.markdown('### Muscle Group')
     col1, col2 = st.columns([1, 1])
@@ -85,14 +98,54 @@ with st.form(key='my_form'):
                 with col5:
                     reps_dropdown = st.number_input('Dropdown Reps', min_value=0, max_value=100, value=0, step=1, key = f"reps_{i}_{j}_dropdown")
 
-            # exercise_records.append([exercise_name, weight, sets, reps, notes])
+            exercise_records.append({
+                'exercise_name': exercise_name,
+                'notes': notes,
+                'sets': [
+                    {
+                        'weight': weight,
+                        'reps': reps
+                    }
+                    for weight, reps in zip([weight, weight_dropdown], [reps, reps_dropdown])
+                ]
+            })
 
     # Submit button
     submitted = st.form_submit_button('Submit')
+# Make sure both Muscle Groups are selected
+if submitted and None in (Primary_Muscle_Group, Secondary_Muscle_Group):
+    st.error('Please select Primary and Secondary Muscle Groups.')
 
-if submitted:
-    # Save data to a file
-    # TODO: Brainstorm the best way to save the data, might ask for consultation from chatbot
-    # WITh my requirements above, what would be the best way to save the data?
-    # Answer: Save the data to a CSV file, with the columns as specified above
-    pass
+elif submitted:
+
+    st.write('Submitted!')
+
+    # Save to json file
+    import json
+
+    json_file_path = 'lifting-history.json'
+    # Load existing data
+    try:
+        with open(json_file_path, 'r') as f:
+            data = json.load(f)
+    except FileNotFoundError:
+        data = []
+    
+    # Append new data
+    data.append({
+        'date': date,
+        'training_time_range': training_time_range,
+        'Primary_Muscle_Group': Primary_Muscle_Group,
+        'Secondary_Muscle_Group': Secondary_Muscle_Group,
+        'exercise_records': exercise_records
+    })
+    with open(json_file_path, 'w') as f:
+        json.dump(data, f, indent = 4)
+
+    # Display the results
+    with st.expander('Results'):
+        st.write('Date:', date)
+        st.write('Time:', training_time_range)
+        st.write('Primary Muscle Group:', Primary_Muscle_Group)
+        st.write('Secondary Muscle Group:', Secondary_Muscle_Group)
+        st.write('Exercise Records:', exercise_records)
