@@ -4,13 +4,10 @@ from datetime import datetime
 # Add current directory to path
 from utils import load_config_yaml, filter_exercises_by_group
 from datetime import time
+import streamlit_nested_layout
 
 # TODO: 
 # Requirements:
-# - record training time range
-# - save result to csv
-
-# - filter exercises based on muscle group
 # - Add a button to add not-shown-exercises
 
 # - Convert weights from number to dropdown, define dropdown values based on Muscle Group
@@ -18,6 +15,12 @@ from datetime import time
 # - Update time slider: add option first (morning, afternoon, evening, night) -> display time range
 # - Update Exercise expander: show exercise name
 # - Convert JSON to a DB (sqlite might be simplest)
+
+
+# Not importance-classified yet
+# Update the UI: time input confirmation, to "You trained from A to B, duration {B-A}"
+# 
+
 
 config = load_config_yaml('config.yaml')
 prim_muscle_groups = config['primary_muscle_groups']
@@ -74,12 +77,24 @@ with st.form(key='my_form', clear_on_submit = False):
 
         with st.expander(expanded=False, label=f"Exercise {i+1}"):
             st.markdown(f'#### Exercise {i+1} of {exercise_count}')
-            col1, col2 = st.columns([4, 1])
+            col1, col2 = st.columns([7, 3])
             with col1:
                 filtered_prim_exercises = filter_exercises_by_group(exercise_list, Primary_Muscle_Group, Secondary_Muscle_Group)
                 exercise_name = st.selectbox('Exercise Name', filtered_prim_exercises, key = f"exercise_name_{i}")
-            with col2:
-                notes = st.text_area('Notes', value='', height=None, max_chars=None, key = f"notes_{i}")
+            with col2.expander(label="Add new exercise", expanded=False):
+                all_muscle_groups = prim_muscle_groups.copy()
+                all_muscle_groups.extend(sec_muscle_groups)
+                print(f"prim_muscle_groups: {prim_muscle_groups}")
+                print(f"sec_muscle_groups: {sec_muscle_groups}")
+                print(f"All muscle groups to choose from: {all_muscle_groups}")
+                new_exercise_muscle_group = st.selectbox('Muscle Group', all_muscle_groups,
+                                                         index=None,
+                                                         key = f"new_exercise_muscle_group_{i}")
+                new_exercise_name = st.text_input("Exercise name: ", key=f"new_exercise_name_{i}")
+
+                new_exercise_name_complete = f"[{new_exercise_muscle_group}] {new_exercise_name}"
+                st.markdown(f"You are adding new exercise: {new_exercise_name_complete}")
+                print(f"Adding new exercise: {new_exercise_name_complete}")
 
             for j in range(set_count):
                 col1, col2, col3, col4, col5 = st.columns([3, 2, 2, 1, 1])
@@ -96,7 +111,7 @@ with st.form(key='my_form', clear_on_submit = False):
 
             exercise_records.append({
                 'exercise_name': exercise_name,
-                'notes': notes,
+                # 'notes': notes,
                 'sets': [
                     {
                         'weight': weight,
