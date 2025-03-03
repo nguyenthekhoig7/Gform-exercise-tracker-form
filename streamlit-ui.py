@@ -34,9 +34,9 @@ exercise_count = config['exercise_count']
 set_count = config['set_count']
 exercise_list = config['exercise_list']
 db_name = config['db_name']
+
 # Initialize/Connect the existed the database
 db = ExerciseDB(db_name)
-
 
 st.set_page_config(page_title='Lifting Data Submission',
                page_icon=':man-lifting-weights:')
@@ -84,9 +84,14 @@ with st.form(key='my_form', clear_on_submit = False):
     exercise_records = []
     for i in range(exercise_count):
 
+        # Each exercise
         with st.expander(expanded=False, label=f"Exercise {i+1} of {exercise_count}"):
+
+            # Exercise name
             st.markdown(f'#### Exercise Name')
             col1, col2 = st.columns([2, 1])
+            
+            # Option 1: Select existed exercise
             with col1:
                 filtered_prim_exercises = filter_exercises_by_group(exercise_list, Primary_Muscle_Group, Secondary_Muscle_Group)
                 filtered_prim_exercises.append("[Unknown] Exercise not existed")
@@ -94,7 +99,8 @@ with st.form(key='my_form', clear_on_submit = False):
             with col2:
                 if  Primary_Muscle_Group is None and Secondary_Muscle_Group is None:
                     st.error('Please select a muscle group to enable selection.')
-
+            
+            # Option 2: Add new exercise
             with st.expander(label="Add new exercise", expanded=False):
                 all_muscle_groups = prim_muscle_groups.copy()
                 all_muscle_groups.extend(sec_muscle_groups)
@@ -109,6 +115,7 @@ with st.form(key='my_form', clear_on_submit = False):
                 new_exercise_name_complete = f"[{new_exercise_muscle_group}] {new_exercise_name}"
                 st.markdown(f"You are adding new exercise: {new_exercise_name_complete}")
 
+            # Each set: weight and reps
             for j in range(set_count):
                 col1, col2, col3, col4, col5 = st.columns([3, 2, 2, 1, 1])
                 with col1:
@@ -126,7 +133,6 @@ with st.form(key='my_form', clear_on_submit = False):
                 exercise_records.append({
                     'exercise_order_id': i,
                     'exercise_name': exercise_name,
-                    # 'notes': notes,
                     'sets': [
                         {
                             'weight': weight,
