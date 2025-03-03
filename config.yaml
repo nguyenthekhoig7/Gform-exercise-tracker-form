@@ -41,3 +41,5 @@ exercise_list: [
   '[Core] Planks',
   '[Core] Leg Raises',
 ]
+
+db_name: 'lifting.db'

@@ -6,21 +6,26 @@ from utils import load_config_yaml, filter_exercises_by_group
 from datetime import time
 import streamlit_nested_layout
 
+from db import ExerciseDB
+from db import LiftingSetsEachDay
 # TODO: 
-# Requirements:
-# - Add a button to add not-shown-exercises
+# Requirements (release 0.0.0):
+# - Add `username` to both the database (exercise & lifting) -> allow view by username
+# - Update database: change exercise_name to foreign key, add exercise table 
+# - Add function: allow user add-exercise to database by username, then load all exercises by username 
 
-# - Convert weights from number to dropdown, define dropdown values based on Muscle Group
 # Enhancements:
+# - Convert weights from number to dropdown, define dropdown values based on Muscle Group
 # - Update time slider: add option first (morning, afternoon, evening, night) -> display time range
 # - Update Exercise expander: show exercise name
-# - Convert JSON to a DB (sqlite might be simplest)
-
+# - Convert form into normal widgets, with confirmation message, and confirmation check-box, then Submit button, only process all data when confirmed by the checkbox
+# - After add data view page, add function to remove record
 
 # Not importance-classified yet
-# Update the UI: time input confirmation, to "You trained from A to B, duration {B-A}"
-# 
-
+# - Update the UI: time input confirmation, to "You trained from A to B, duration {B-A}"
+# - Validation: if adding a new exercise: selected exercise name must be "[Unknown] Exercise not existed"    
+# - Validation: only add to database if `exercise_name` is provided (not None)
+# - Add a new page to view the data, input username to view all the data
 
 config = load_config_yaml('config.yaml')
 prim_muscle_groups = config['primary_muscle_groups']
@@ -28,6 +33,10 @@ sec_muscle_groups = config['secondary_muscle_groups']
 exercise_count = config['exercise_count']
 set_count = config['set_count']
 exercise_list = config['exercise_list']
+db_name = config['db_name']
+# Initialize/Connect the existed the database
+db = ExerciseDB(db_name)
+
 
 st.set_page_config(page_title='Lifting Data Submission',
                page_icon=':man-lifting-weights:')
@@ -75,26 +84,30 @@ with st.form(key='my_form', clear_on_submit = False):
     exercise_records = []
     for i in range(exercise_count):
 
-        with st.expander(expanded=False, label=f"Exercise {i+1}"):
-            st.markdown(f'#### Exercise {i+1} of {exercise_count}')
-            col1, col2 = st.columns([7, 3])
+        with st.expander(expanded=False, label=f"Exercise {i+1} of {exercise_count}"):
+            st.markdown(f'#### Exercise Name')
+            col1, col2 = st.columns([2, 1])
             with col1:
                 filtered_prim_exercises = filter_exercises_by_group(exercise_list, Primary_Muscle_Group, Secondary_Muscle_Group)
-                exercise_name = st.selectbox('Exercise Name', filtered_prim_exercises, key = f"exercise_name_{i}")
-            with col2.expander(label="Add new exercise", expanded=False):
+                filtered_prim_exercises.append("[Unknown] Exercise not existed")
+                exercise_name = st.selectbox('Exercise Name', filtered_prim_exercises, index=None, key = f"exercise_name_{i}")
+            with col2:
+                if  Primary_Muscle_Group is None and Secondary_Muscle_Group is None:
+                    st.error('Please select a muscle group to enable selection.')
+
+            with st.expander(label="Add new exercise", expanded=False):
                 all_muscle_groups = prim_muscle_groups.copy()
                 all_muscle_groups.extend(sec_muscle_groups)
-                print(f"prim_muscle_groups: {prim_muscle_groups}")
-                print(f"sec_muscle_groups: {sec_muscle_groups}")
-                print(f"All muscle groups to choose from: {all_muscle_groups}")
-                new_exercise_muscle_group = st.selectbox('Muscle Group', all_muscle_groups,
+                col1, col2 = st.columns([1, 3])
+                with col1: 
+                    new_exercise_muscle_group = st.selectbox('Muscle Group', all_muscle_groups,
                                                          index=None,
                                                          key = f"new_exercise_muscle_group_{i}")
-                new_exercise_name = st.text_input("Exercise name: ", key=f"new_exercise_name_{i}")
+                with col2:  
+                    new_exercise_name = st.text_input("Exercise name: ", key=f"new_exercise_name_{i}")
 
                 new_exercise_name_complete = f"[{new_exercise_muscle_group}] {new_exercise_name}"
                 st.markdown(f"You are adding new exercise: {new_exercise_name_complete}")
-                print(f"Adding new exercise: {new_exercise_name_complete}")
 
             for j in range(set_count):
                 col1, col2, col3, col4, col5 = st.columns([3, 2, 2, 1, 1])
@@ -108,50 +121,43 @@ with st.form(key='my_form', clear_on_submit = False):
                     weight_dropdown = st.number_input('Dropdown Weight', min_value=0, max_value=500, value=0, step=1, key = f"weight_{i}_{j}_dropdown")
                 with col5:
                     reps_dropdown = st.number_input('Dropdown Reps', min_value=0, max_value=100, value=0, step=1, key = f"reps_{i}_{j}_dropdown")
-
-            exercise_records.append({
-                'exercise_name': exercise_name,
-                # 'notes': notes,
-                'sets': [
-                    {
-                        'weight': weight,
-                        'reps': reps
-                    }
-                    for weight, reps in zip([weight, weight_dropdown], [reps, reps_dropdown])
-                ]
-            })
+            
+            if exercise_name is not None:
+                exercise_records.append({
+                    'exercise_order_id': i,
+                    'exercise_name': exercise_name,
+                    # 'notes': notes,
+                    'sets': [
+                        {
+                            'weight': weight,
+                            'reps': reps,
+                            'dropdown_weight': weight_dropdown,
+                            'dropdown_reps': reps_dropdown
+                        }
+                        for weight, reps, weight_dropdown, reps_dropdown in zip(
+                            [weight for _ in range(set_count)],
+                            [reps for _ in range(set_count)],
+                            [weight_dropdown for _ in range(set_count)],
+                            [reps_dropdown for _ in range(set_count)]
+                        )
+                    ]
+                })
 
     # Submit button
     submitted = st.form_submit_button('Submit')
+
 # Make sure both Muscle Groups are selected
 if submitted and None in (Primary_Muscle_Group, Secondary_Muscle_Group):
-    st.error('Please select Primary and Secondary Muscle Groups.')
+    st.error('Please select both Primary and Secondary Muscle Groups.')
 
 elif submitted:
 
     st.write('Submitted!')
 
-    # Save to json file
-    import json
-
-    json_file_path = 'lifting-history.json'
-    # Load existing data
-    try:
-        with open(json_file_path, 'r') as f:
-            data = json.load(f)
-    except FileNotFoundError:
-        data = []
-    
-    # Append new data
-    data.append({
-        'date': date,
-        'training_time_range': training_time_range,
-        'Primary_Muscle_Group': Primary_Muscle_Group,
-        'Secondary_Muscle_Group': Secondary_Muscle_Group,
-        'exercise_records': exercise_records
-    })
-    with open(json_file_path, 'w') as f:
-        json.dump(data, f, indent = 4)
+    # Add the data to the database
+    lifting_day = LiftingSetsEachDay(date, training_time_range, exercise_records)
+    all_lift_sets = lifting_day.to_lifting_sets()
+    db.add_lifting_sets(all_lift_sets)
 
     # Display the results
     with st.expander('Results'):
