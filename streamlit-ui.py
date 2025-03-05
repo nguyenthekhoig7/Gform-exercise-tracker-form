@@ -26,6 +26,7 @@ from db import LiftingSetsEachDay
 # - Validation: if adding a new exercise: selected exercise name must be "[Unknown] Exercise not existed"    
 # - Validation: only add to database if `exercise_name` is provided (not None)
 # - Add a new page to view the data, input username to view all the data
+# Synchonize the database with the config.yaml file (e.g. 'dropdown_reps_count')
 
 config = load_config_yaml('config.yaml')
 prim_muscle_groups = config['primary_muscle_groups']
@@ -41,6 +42,11 @@ db = ExerciseDB(db_name)
 st.set_page_config(page_title='Lifting Data Submission',
                page_icon=':man-lifting-weights:')
 st.title('Lifting Data Submission')
+
+
+# Username input
+st.markdown('### Username')
+username = st.text_input('Enter your username')
 
 # Date input
 st.markdown('### Date')
@@ -85,7 +91,9 @@ with st.form(key='my_form', clear_on_submit = False):
     for i in range(exercise_count):
 
         # Each exercise
-        with st.expander(expanded=False, label=f"Exercise {i+1} of {exercise_count}"):
+        
+        expanded = True if i == 0 else False
+        with st.expander(expanded=expanded, label=f"Exercise {i+1} of {exercise_count}"):
 
             # Exercise name
             st.markdown(f'#### Exercise Name')
@@ -135,10 +143,10 @@ with st.form(key='my_form', clear_on_submit = False):
                     'exercise_name': exercise_name,
                     'sets': [
                         {
-                            'weight': weight,
-                            'reps': reps,
-                            'dropdown_weight': weight_dropdown,
-                            'dropdown_reps': reps_dropdown
+                            'weight_kg': weight,
+                            'reps_count': reps,
+                            'dropdown_weight_kg': weight_dropdown,
+                            'dropdown_reps_count': reps_dropdown
                         }
                         for weight, reps, weight_dropdown, reps_dropdown in zip(
                             [weight for _ in range(set_count)],
@@ -153,20 +161,23 @@ with st.form(key='my_form', clear_on_submit = False):
     submitted = st.form_submit_button('Submit')
 
 # Make sure both Muscle Groups are selected
+if submitted and not username:
+    st.error('Please enter your username.')
+    
 if submitted and None in (Primary_Muscle_Group, Secondary_Muscle_Group):
     st.error('Please select both Primary and Secondary Muscle Groups.')
-
 elif submitted:
 
     st.write('Submitted!')
 
     # Add the data to the database
-    lifting_day = LiftingSetsEachDay(date, training_time_range, exercise_records)
+    lifting_day = LiftingSetsEachDay(username, date, training_time_range, exercise_records)
     all_lift_sets = lifting_day.to_lifting_sets()
     db.add_lifting_sets(all_lift_sets)
 
     # Display the results
     with st.expander('Results'):
+        st.write('Username:', username)
         st.write('Date:', date)
         st.write('Time:', training_time_range)
         st.write('Primary Muscle Group:', Primary_Muscle_Group)

@@ -43,3 +43,5 @@ exercise_list: [
 ]
 
 db_name: 'lifting.db'
+
+admin_username: 'admin.khoint'
