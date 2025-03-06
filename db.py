@@ -1,4 +1,5 @@
 import sqlite3
+import pandas as pd
 
 class LiftingSet:
     #     Each record is a row, with columns: date, time, exercise_name, set_id, weight, reps_count, dropdown_weight_kg, dropdown_reps_count
@@ -70,21 +71,13 @@ class LiftingSetsEachDay:
 
     
 class ExerciseDB:
-    def __init__(self, db_name):
+    def __init__(self, db_name, exercise_list: list, admin_username: str):
         self.conn = sqlite3.connect(db_name)
-        
         self.cursor = self.conn.cursor()
+        self.create_tables(exercise_list=exercise_list, admin_username=admin_username)
 
-        # Create table if not exists
-        self.cursor.execute('''CREATE TABLE IF NOT EXISTS exercises
-             (id INTEGER PRIMARY KEY, exercise_name TEXT)''')
-        
-        self.cursor.execute('''CREATE TABLE IF NOT EXISTS lifting_sets
-             (id INTEGER PRIMARY KEY, username TEXT, date TEXT, time TEXT, exercise_order_id INTEGER, exercise_name TEXT, set_id INTEGER, weight_kg REAL, reps_count INTEGER, dropdown_weight_kg REAL, dropdown_reps_count INTEGER)''')
-        self.conn.commit()
-
-    def add_exercise(self, exercise_name):
-        self.cursor.execute("INSERT INTO exercises (exercise_name) VALUES (?)", (exercise_name,))
+    def add_exercise(self, username, exercise_name):
+        self.cursor.execute("INSERT INTO exercises (username, exercise_name) VALUES (?, ?)", (username, exercise_name,))
         self.conn.commit()
         print(f"DB Status: Added exercise: {exercise_name}")
 
@@ -100,3 +93,34 @@ class ExerciseDB:
     def add_lifting_sets(self, lifting_sets: list):
         for lifting_set in lifting_sets:
             self.add_set(lifting_set)
+
+    def create_tables(self, exercise_list: list, admin_username: str):
+
+        ''' Create table if not exists
+        Add default exercises to the exercises table
+        '''
+        
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS exercises
+             (id INTEGER PRIMARY KEY, username TEXT, exercise_name TEXT)''')
+        
+        # Insert exercises into the table
+        for exercise in exercise_list:
+            self.add_exercise(username=admin_username, exercise_name=exercise)
+
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS lifting_sets
+             (id INTEGER PRIMARY KEY, username TEXT, date TEXT, time TEXT, exercise_order_id INTEGER, exercise_name TEXT, set_id INTEGER, weight_kg REAL, reps_count INTEGER, dropdown_weight_kg REAL, dropdown_reps_count INTEGER)''')
+        self.conn.commit()
+
+    def get_data(self, table_name, username: str = None):
+        if username is not None:
+            self.cursor.execute(f"SELECT * FROM {table_name} WHERE username = '{username}'")
+        else:
+            self.cursor.execute(f"SELECT * FROM {table_name}")
+        rows = self.cursor.fetchall()
+        columns = [description[0] for description in self.cursor.description]
+        return pd.DataFrame(rows, columns = columns)
+    
+    def get_all_table_name(self):
+        self.cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+        all_table_names =  self.cursor.fetchall()
+        return [table[0] for table in all_table_names]
