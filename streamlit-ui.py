@@ -2,14 +2,15 @@ import streamlit as st
 from datetime import datetime
 
 # Add current directory to path
-from utils import load_config_yaml, filter_exercises_by_group
+from utils import filter_exercises_by_group, load_st_config
 from datetime import time
-import streamlit_nested_layout
+import streamlit_nested_layout # To use nested layout in exercise details input
 
 from db import ExerciseDB
 from db import LiftingSetsEachDay
 # TODO: 
 # Requirements (release 0.0.0):
+# - DB Bug: Check if the table exists before creating it
 # - Update database: change exercise_name to foreign key, add exercise table 
 # - Add function: allow user add-exercise to database by username, then load all exercises by username 
 # - Deploy the app to streamlit public
@@ -27,7 +28,7 @@ from db import LiftingSetsEachDay
 # - Validation: only add to database if `exercise_name` is provided (not None)
 # Synchonize the database with the config.yaml file (e.g. 'dropdown_reps_count')
 
-config = load_config_yaml('config.yaml')
+config = load_st_config(st)
 prim_muscle_groups = config['primary_muscle_groups']
 sec_muscle_groups = config['secondary_muscle_groups']
 exercise_count = config['exercise_count']
@@ -103,6 +104,7 @@ with st.form(key='my_form', clear_on_submit = False):
             # Option 1: Select existed exercise
             with col1:
                 filtered_prim_exercises = filter_exercises_by_group(exercise_list, Primary_Muscle_Group, Secondary_Muscle_Group)
+                
                 filtered_prim_exercises.append("[Unknown] Exercise not existed")
                 exercise_name = st.selectbox('Exercise Name', filtered_prim_exercises, index=None, key = f"exercise_name_{i}")
             with col2:
