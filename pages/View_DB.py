@@ -5,11 +5,10 @@ import streamlit as st
 # Add the parent directory to sys.path
 import sys
 sys.path.append('..')
-from utils import load_config_yaml
+from utils import load_st_config
 from db import ExerciseDB
 
-
-config = load_config_yaml('config.yaml')
+config = load_st_config(st)
 db_name = config['db_name']
 admin_username = config['admin_username']
 exercise_list = config['exercise_list']

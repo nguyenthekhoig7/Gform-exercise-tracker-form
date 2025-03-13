@@ -74,6 +74,9 @@ class ExerciseDB:
     def __init__(self, db_name, exercise_list: list, admin_username: str):
         self.conn = sqlite3.connect(db_name)
         self.cursor = self.conn.cursor()
+
+        # ! BUG: The table is created every time the class is instantiated
+        # ! FIX: Check if the table exists before creating it
         self.create_tables(exercise_list=exercise_list, admin_username=admin_username)
 
     def add_exercise(self, username, exercise_name):
