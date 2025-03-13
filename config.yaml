@@ -1,0 +1,47 @@
+primary_muscle_groups: ['Shoulders', 'Chest', 'Back', 'Legs']
+secondary_muscle_groups: ['Biceps', 'Triceps', 'Core']
+
+exercise_count: 5
+set_count: 3
+
+exercise_list: [
+  '[Shoulders] Shoulder Press Machine',
+  '[Shoulders] Dumbbell Shoulder Press',
+  '[Shoulders] Lateral Raises',
+  '[Shoulders] Front Raises',
+  '[Shoulders] Rear Delt Flyes',
+  '[Shoulders] Dumbell Rows',
+  '[Back] Lat Pulldowns Wide Grip',
+  '[Back] Lat Pulldowns Close Grip',
+  '[Back] Seated Rows',
+  '[Back] Deadlifts',
+  '[Back] Dumbell Rows',
+  '[Chest] Bench Press',
+  '[Chest] Incline Bench Press',
+  '[Chest] Decline Bench Press',
+  '[Chest] Flyes',
+  '[Chest] Dumbell Press',
+  '[Chest] Incline Dumbell Press',
+  '[Chest] Incline Machine Press',
+  '[Biceps] Barbell Curls',
+  '[Biceps] Dumbell Curls',
+  '[Biceps] Cable Curls',
+  '[Triceps] Tricep Pushdowns Rope',
+  '[Triceps] Tricep Pushdowns Bar',
+  '[Triceps] Overhead Tricep Extension',
+  '[Triceps] Dips',
+  '[Triceps] Close Grip Bench Press',
+  '[Legs] Squats',
+  '[Legs] Leg Press',
+  '[Legs] Leg Extensions',
+  '[Legs] Leg Curls',
+  '[Legs] Calf Raises',
+  '[Legs] Deadlifts',
+  '[Legs] Farmers Walk',
+  '[Core] Planks',
+  '[Core] Leg Raises',
+]
+
+db_name: 'lifting.db'
+
+admin_username: 'admin.khoint'
