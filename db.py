@@ -1,5 +1,6 @@
 import sqlite3
 import pandas as pd
+from typing import Literal
 
 class LiftingSet:
     #     Each record is a row, with columns: date, time, exercise_name, set_id, weight, reps_count, dropdown_weight_kg, dropdown_reps_count
@@ -72,24 +73,31 @@ class LiftingSetsEachDay:
     
 class ExerciseDB:
     def __init__(self, db_name, exercise_list: list, admin_username: str):
+        self.default_exercises = exercise_list
+        self.admin_username = admin_username
         self.conn = sqlite3.connect(db_name)
         self.cursor = self.conn.cursor()
 
-        # ! BUG: The table is created every time the class is instantiated
-        # ! FIX: Check if the table exists before creating it
-        self.create_tables(exercise_list=exercise_list, admin_username=admin_username)
+        self.create_tables(exercise_list=self.default_exercises, 
+                           admin_username=self.admin_username)
 
     def add_exercise(self, username, exercise_name):
-        self.cursor.execute("INSERT INTO exercises (username, exercise_name) VALUES (?, ?)", (username, exercise_name,))
-        self.conn.commit()
-        print(f"DB Status: Added exercise: {exercise_name}")
+        # Only add the exercise if there is not yet a record with the same username and exercise_name
+        self.cursor.execute("SELECT * FROM exercises WHERE username = ? AND exercise_name = ?", (username, exercise_name,))
+        if self.cursor.fetchone() is not None:
+            # print(f"DB Status: Exercise {exercise_name} already exists")
+            return True
+        else:
+            self.cursor.execute("INSERT OR REPLACE INTO exercises (username, exercise_name) VALUES (?, ?)", (username, exercise_name,))
+
+        self.conn.commit()  
+        # print(f"DB Status: Added exercise: {exercise_name}")
 
     def add_set(self, lifting_set: LiftingSet):
         self.cursor.execute("INSERT INTO lifting_sets (username, date, time, exercise_order_id, exercise_name, set_id, weight_kg, reps_count, dropdown_weight_kg, dropdown_reps_count) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
                             (lifting_set.username, lifting_set.date, lifting_set.time, lifting_set.exercise_order_id, lifting_set.exercise_name, lifting_set.set_id, lifting_set.weight_kg, lifting_set.reps_count, lifting_set.dropdown_weight_kg, lifting_set.dropdown_reps_count))
         
-        # Commit your changes in the database 
-        self.conn.commit() 
+        self.conn.commit()
 
         print(f"DB Status: Added record: {lifting_set.__str__()}")
 
@@ -106,12 +114,13 @@ class ExerciseDB:
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS exercises
              (id INTEGER PRIMARY KEY, username TEXT, exercise_name TEXT)''')
         
-        # Insert exercises into the table
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS lifting_sets
+             (id INTEGER PRIMARY KEY, username TEXT, date TEXT, time TEXT, exercise_order_id INTEGER, exercise_name TEXT, set_id INTEGER, weight_kg REAL, reps_count INTEGER, dropdown_weight_kg REAL, dropdown_reps_count INTEGER)''')
+        
+        # Insert default exercises
         for exercise in exercise_list:
             self.add_exercise(username=admin_username, exercise_name=exercise)
 
-        self.cursor.execute('''CREATE TABLE IF NOT EXISTS lifting_sets
-             (id INTEGER PRIMARY KEY, username TEXT, date TEXT, time TEXT, exercise_order_id INTEGER, exercise_name TEXT, set_id INTEGER, weight_kg REAL, reps_count INTEGER, dropdown_weight_kg REAL, dropdown_reps_count INTEGER)''')
         self.conn.commit()
 
     def get_data(self, table_name, username: str = None):
@@ -127,3 +136,16 @@ class ExerciseDB:
         self.cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
         all_table_names =  self.cursor.fetchall()
         return [table[0] for table in all_table_names]
+    
+    def reset_db(self, username: str, db_name : Literal['exercises', 'lifting_sets', 'all']):
+        ''' Clear all records from all tables in database '''
+        if username != self.admin_username:
+            raise ValueError("Only admin can clear the database!")
+        
+        if db_name == 'all':
+            for table in ['exercises', 'lifting_sets']:
+                self.cursor.execute(f"DROP TABLE IF EXISTS {table}")
+        else:
+            self.cursor.execute(f"DROP TABLE IF EXISTS {db_name}")
+
+        self.create_tables(exercise_list=self.default_exercises, admin_username=username)

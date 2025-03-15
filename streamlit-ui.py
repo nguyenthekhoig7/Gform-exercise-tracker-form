@@ -8,9 +8,10 @@ import streamlit_nested_layout # To use nested layout in exercise details input
 
 from db import ExerciseDB
 from db import LiftingSetsEachDay
+
 # TODO: 
 # Requirements (release 0.0.0):
-# - DB Bug: Check if the table exists before creating it
+# - BUG: When adding new sets, only first set of first exercise is added to the database, the rest are not added
 # - Update database: change exercise_name to foreign key, add exercise table 
 # - Add function: allow user add-exercise to database by username, then load all exercises by username 
 # - Deploy the app to streamlit public
@@ -21,6 +22,7 @@ from db import LiftingSetsEachDay
 # - Update Exercise expander: show exercise name
 # - Convert form into normal widgets, with confirmation message, and confirmation check-box, then Submit button, only process all data when confirmed by the checkbox
 # - After add data view page, add function to remove record
+# - Add 'required' tag to required fields: username, primary muscle group, secondary muscle group
 
 # Not importance-classified yet
 # - Update the UI: time input confirmation, to "You trained from A to B, duration {B-A}"

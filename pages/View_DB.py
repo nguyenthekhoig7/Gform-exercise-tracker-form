@@ -16,12 +16,23 @@ exercise_list = config['exercise_list']
 st.set_page_config(page_title='View Lifting Data')
 st.title('View Lifting Data')
 
-# Input username to view all the data
-username = st.text_input('Enter your username')
+# Add a form wtih 2 buttons, one to view all the data, and one to clear the database
+with st.form(key='view_data_form'):
+    # Input username to view all the data
+    username = st.text_input('Enter your username')
+
+    # Left button to view the data, right button to reset the database, in columns
+    _, col1, _,  col2 = st.columns([1, 4, 1, 3])
+    view_data_button = col1.form_submit_button('View Data')
+    
+    with col2:
+        # Put the reset database button in a colapsed expander
+        with st.expander("Advanced Option", expanded=False):
+            clear_db_button = st.form_submit_button('Reset Database')
 
 db = ExerciseDB(db_name, exercise_list=exercise_list, admin_username=admin_username)
 
-if username:
+if view_data_button and username:
     if username == admin_username:
         all_table_names = db.get_all_table_name()
         st.markdown("**Database data**")
@@ -46,9 +57,10 @@ if username:
             with col:   
                 st.dataframe(data_with_columns)
 
-# def show_data(username: str):
-#     cursor.execute("SELECT * FROM lifting_sets WHERE username = ?", (username,))
-#     rows = cursor.fetchall()
-#     columns = [description[0] for description in cursor.description]
-#     data_with_columns = pd.DataFrame(rows, columns = columns)
-#     st.dataframe(data_with_columns)
+if clear_db_button and username:
+    # Verify if the user is admin
+    if username == admin_username:
+        db.reset_db(username, 'all')
+        st.write("Database cleared successfully!")
+    else:
+        st.write("Only admin can clear the database!")
