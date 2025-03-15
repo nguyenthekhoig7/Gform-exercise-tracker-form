@@ -12,6 +12,7 @@ from db import LiftingSetsEachDay
 # TODO: 
 # Requirements (release 0.0.0):
 # - BUG: When adding new sets, only first set of first exercise is added to the database, the rest are not added
+# - BUG: values in database are not correct, different from the input
 # - Update database: change exercise_name to foreign key, add exercise table 
 # - Add function: allow user add-exercise to database by username, then load all exercises by username 
 # - Deploy the app to streamlit public
