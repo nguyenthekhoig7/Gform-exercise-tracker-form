@@ -10,26 +10,40 @@ from db import ExerciseDB
 from db import LiftingSetsEachDay
 
 # TODO: 
-# Requirements (release 0.0.0):
+# ==================
+
+# [Requirements] [high priority]
 # - BUG: When adding new sets, only first set of first exercise is added to the database, the rest are not added
 # - BUG: values in database are not correct, different from the input
-# - Update database: change exercise_name to foreign key, add exercise table 
-# - Add function: allow user add-exercise to database by username, then load all exercises by username 
 # - Deploy the app to streamlit public
 
-# Enhancements:
+# Epic: Users
+# - Create table: user: username, tier
+# - Change username in LiftingSet to user_id, FK to user table
+
+# Epic: Exercises
+# - Function: Add default exercises for all new users, before adding to user table (sign up function)
+# - Function: Add new exercise to the database by (username, exercise_name)
+# - Validation - add new exercise: selected exercise name must be "[Unknown] Exercise not existed"    
+# - Validation - add new exercise: only add to database if `exercise_name` is provided (not None)
+
+# Epic: Code Refactor, for better code quality and maintainability
+# - Refactor: Create Global Variables for all config values. e.g. exercise_count, set_count, exercise_list, db_name, admin_username
+# - Refactor: Put UI codes into a function, then call the function in the main() function
+
+# ==================
+
+# [Enhancements] [medium priority]
 # - Convert weights from number to dropdown, define dropdown values based on Muscle Group
 # - Update time slider: add option first (morning, afternoon, evening, night) -> display time range
 # - Update Exercise expander: show exercise name
 # - Convert form into normal widgets, with confirmation message, and confirmation check-box, then Submit button, only process all data when confirmed by the checkbox
 # - After add data view page, add function to remove record
 # - Add 'required' tag to required fields: username, primary muscle group, secondary muscle group
-
-# Not importance-classified yet
 # - Update the UI: time input confirmation, to "You trained from A to B, duration {B-A}"
-# - Validation: if adding a new exercise: selected exercise name must be "[Unknown] Exercise not existed"    
-# - Validation: only add to database if `exercise_name` is provided (not None)
-# Synchonize the database with the config.yaml file (e.g. 'dropdown_reps_count')
+# - Rename the files to more meaningful names: streamlit-ui.py -> Lifting_Submission.py, View_DB.py -> View_Data.py
+
+# ====================================
 
 config = load_st_config(st)
 prim_muscle_groups = config['primary_muscle_groups']
