@@ -1,20 +1,3 @@
-import yaml
-from typing import Dict
-
-# Deprecated, moved config to .streamlit/secrets.toml
-# def load_config_yaml(config_path: str) -> Dict:
-#     with open(config_path, 'r') as f:
-#         config = yaml.safe_load(f)
-#     return config
-
-def load_st_config(streamlit: object) -> Dict:
-    config = {}
-
-    # Load config with all keys available in .streamlit/secrets.toml
-    for key in ['db_name', 'admin_username', 'exercise_list', 'exercise_count', 'set_count', 'primary_muscle_groups', 'secondary_muscle_groups']:
-        config[key] = streamlit.secrets[key]
-
-    return config
 
 def filter_exercises_by_group(exercise_list: list, muscle_group_1: str, muscle_group_2: str):
     '''
