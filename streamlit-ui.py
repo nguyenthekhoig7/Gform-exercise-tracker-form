@@ -1,13 +1,18 @@
-import streamlit as st
-from datetime import datetime
+"""
+Update: Use app.py as the main file to run the Streamlit app
+This file will be used for planning only.
+"""
+
+# import streamlit as st
+# from datetime import datetime
 
 # Add current directory to path
-from utils import filter_exercises_by_group, load_st_config
-from datetime import time
-import streamlit_nested_layout # To use nested layout in exercise details input
+# from utils import filter_exercises_by_group, load_st_config
+# from datetime import time
+# import streamlit_nested_layout # To use nested layout in exercise details input
 
-from db import ExerciseDB
-from db import LiftingSetsEachDay
+# from db import ExerciseDB
+# from db import LiftingSetsEachDay
 
 # TODO: 
 # ==================
@@ -22,7 +27,6 @@ from db import LiftingSetsEachDay
 # - Change username in LiftingSet to user_id, FK to user table
 
 # Epic: Exercises
-# - Constraint: if adding new exercise, diable the selection of existed exercise -> check for conflict when submit -> user will correct.
 # - Function: Add default exercises for all new users, before adding to user table (sign up function)
 # - Function: Add new exercise to the database by (username, exercise_name)
 # - Validation - add new exercise: selected exercise name must be "[Unknown] Exercise not existed"    
