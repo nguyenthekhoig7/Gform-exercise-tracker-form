@@ -34,7 +34,6 @@ This file will be used for planning only.
 
 # Epic: Code Refactor, for better code quality and maintainability
 # - Refactor: Create Global Variables for all config values. e.g. exercise_count, set_count, exercise_list, db_name, admin_username
-# - Refactor: Put UI codes into a function, then call the function in the main() function
 
 # ==================
 
