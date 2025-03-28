@@ -1,4 +1,4 @@
-# app.py
+# Run command: `streamlit run app.py`
 import streamlit as st
 from ui import StreamlitUI, InputValidator
 from db import ExerciseDB

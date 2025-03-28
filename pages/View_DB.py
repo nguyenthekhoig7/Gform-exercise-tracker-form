@@ -5,13 +5,8 @@ import streamlit as st
 # Add the parent directory to sys.path
 import sys
 sys.path.append('..')
-from utils import load_st_config
+from config import DB_NAME, EXERCISE_LIST, ADMIN_USERNAME
 from db import ExerciseDB
-
-config = load_st_config(st)
-db_name = config['db_name']
-admin_username = config['admin_username']
-exercise_list = config['exercise_list']
 
 st.set_page_config(page_title='View Lifting Data')
 st.title('View Lifting Data')
@@ -30,19 +25,19 @@ with st.form(key='view_data_form'):
         with st.expander("Advanced Option", expanded=False):
             clear_db_button = st.form_submit_button('Reset Database')
 
-db = ExerciseDB(db_name, exercise_list=exercise_list, admin_username=admin_username)
+db = ExerciseDB(DB_NAME, exercise_list=EXERCISE_LIST, admin_username=ADMIN_USERNAME)
 
 if view_data_button and username:
-    if username == admin_username:
+    if username == ADMIN_USERNAME:
         all_table_names = db.get_all_table_name()
         st.markdown("**Database data**")
         for table in all_table_names:
-            data_with_columns = db.get_data(table_name = table, username=admin_username)
+            data_with_columns = db.get_data(table_name = table, username=ADMIN_USERNAME)
 
             st.markdown(f"Table: **{table}**")
             _, col = st.columns([1, 19])
             with col:   
-                st.dataframe(data_with_columns)
+                st.dataframe(data_with_columns, hide_index=True, use_container_width=True)
 
 
     else:
@@ -54,12 +49,12 @@ if view_data_button and username:
 
             st.markdown(f"Table: **{table}**")
             _, col = st.columns([1, 19])
-            with col:   
-                st.dataframe(data_with_columns)
+            with col:
+                st.dataframe(data_with_columns, hide_index=True)
 
 if clear_db_button and username:
     # Verify if the user is admin
-    if username == admin_username:
+    if username == ADMIN_USERNAME:
         db.reset_db(username, 'all')
         st.write("Database cleared successfully!")
     else:

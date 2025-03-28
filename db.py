@@ -1,6 +1,7 @@
 import sqlite3
 import pandas as pd
 from typing import Literal
+from config import ItemKeys
 
 class LiftingSet:
     #     Each record is a row, with columns: date, time, exercise_name, set_id, weight, reps_count, dropdown_weight_kg, dropdown_reps_count
@@ -28,16 +29,16 @@ class LiftingSet:
 
     def __dict__(self):
         return {
-            'username': self.username,
-            'date': self.date,
-            'time': self.time,
-            'exercise_order_id': self.exercise_order_id,
-            'exercise_name': self.exercise_name,
-            'set_id': self.set_id,
-            'weight_kg': self.weight_kg,
-            'reps_count': self.reps_count,
-            'dropdown_weight_kg': self.dropdown_weight_kg,
-            'dropdown_reps_count': self.dropdown_reps_count
+            ItemKeys.USERNAME: self.username,
+            ItemKeys.DATE: self.date,
+            ItemKeys.TIME: self.time,
+            ItemKeys.EXERCISE_ORDER_ID: self.exercise_order_id,
+            ItemKeys.EXERCISE_NAME: self.exercise_name,
+            ItemKeys.SET_ID: self.set_id,
+            ItemKeys.WEIGHT_KG: self.weight_kg,
+            ItemKeys.REPS_COUNT: self.reps_count,
+            ItemKeys.DROPDOWN_WEIGHT_KG: self.dropdown_weight_kg,
+            ItemKeys.DROPDOWN_REPS_COUNT: self.dropdown_reps_count
         }
     
     def __str__(self):
@@ -56,22 +57,23 @@ class LiftingSetsEachDay:
         self.lift_sets = []
         for exercise in exercises:
             if exercise['exercise_name'] is None: continue
-            for set_id, set in enumerate(exercise['sets']):
+            for set_id, set in enumerate(exercise.get(ItemKeys.SETS)):
                 self.lift_sets.append(
                     LiftingSet(username, date, time, 
-                               exercise['exercise_order_id'], 
-                               exercise['exercise_name'], 
+                               exercise.get(ItemKeys.EXERCISE_ORDER_ID), 
+                               exercise.get(ItemKeys.EXERCISE_NAME), 
                                 set_id,
-                                set['weight_kg'],
-                                set['reps_count'],
-                                set['dropdown_weight_kg'],
-                                set['dropdown_reps_count']))  
+                                set.get(ItemKeys.WEIGHT_KG),
+                                set.get(ItemKeys.REPS_COUNT),
+                                set.get(ItemKeys.DROPDOWN_WEIGHT_KG),
+                                set.get(ItemKeys.DROPDOWN_REPS_COUNT)))
             
     def to_lifting_sets(self):
         return self.lift_sets
 
     
 class ExerciseDB:
+
     def __init__(self, db_name, exercise_list: list, admin_username: str):
         self.default_exercises = exercise_list
         self.admin_username = admin_username
@@ -82,19 +84,24 @@ class ExerciseDB:
                            admin_username=self.admin_username)
 
     def add_exercise(self, username, exercise_name):
-        # Only add the exercise if there is not yet a record with the same username and exercise_name
-        self.cursor.execute("SELECT * FROM exercises WHERE username = ? AND exercise_name = ?", (username, exercise_name,))
+
+        # Check if exercise already exists
+        self.cursor.execute(
+            f"SELECT * FROM exercises WHERE {ItemKeys.USERNAME} = ? AND {ItemKeys.EXERCISE_NAME} = ?", 
+            (username, exercise_name,))
+        
         if self.cursor.fetchone() is not None:
             # print(f"DB Status: Exercise {exercise_name} already exists")
             return True
         else:
-            self.cursor.execute("INSERT OR REPLACE INTO exercises (username, exercise_name) VALUES (?, ?)", (username, exercise_name,))
+            self.cursor.execute("INSERT OR REPLACE INTO exercises (username, exercise_name) VALUES (?, ?)", (ItemKeys.USERNAME, ItemKeys.EXERCISE_NAME,))
 
         self.conn.commit()  
         # print(f"DB Status: Added exercise: {exercise_name}")
 
     def add_set(self, lifting_set: LiftingSet):
-        self.cursor.execute("INSERT INTO lifting_sets (username, date, time, exercise_order_id, exercise_name, set_id, weight_kg, reps_count, dropdown_weight_kg, dropdown_reps_count) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
+        self.cursor.execute("INSERT INTO lifting_sets ({}, {}, {}, {}, {}, {}, {}, {}, {}, {}) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)".format(
+                            ItemKeys.USERNAME, ItemKeys.DATE, ItemKeys.TIME, ItemKeys.EXERCISE_ORDER_ID, ItemKeys.EXERCISE_NAME, ItemKeys.SET_ID, ItemKeys.WEIGHT_KG, ItemKeys.REPS_COUNT, ItemKeys.DROPDOWN_WEIGHT_KG, ItemKeys.DROPDOWN_REPS_COUNT), 
                             (lifting_set.username, lifting_set.date, lifting_set.time, lifting_set.exercise_order_id, lifting_set.exercise_name, lifting_set.set_id, lifting_set.weight_kg, lifting_set.reps_count, lifting_set.dropdown_weight_kg, lifting_set.dropdown_reps_count))
         
         self.conn.commit()
@@ -114,8 +121,18 @@ class ExerciseDB:
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS exercises
              (id INTEGER PRIMARY KEY, username TEXT, exercise_name TEXT)''')
         
-        self.cursor.execute('''CREATE TABLE IF NOT EXISTS lifting_sets
-             (id INTEGER PRIMARY KEY, username TEXT, date TEXT, time TEXT, exercise_order_id INTEGER, exercise_name TEXT, set_id INTEGER, weight_kg REAL, reps_count INTEGER, dropdown_weight_kg REAL, dropdown_reps_count INTEGER)''')
+        self.cursor.execute(f'''CREATE TABLE IF NOT EXISTS lifting_sets
+             (id INTEGER PRIMARY KEY, 
+             {ItemKeys.USERNAME} TEXT, 
+             {ItemKeys.DATE} TEXT, 
+             {ItemKeys.TIME} TEXT, 
+             {ItemKeys.EXERCISE_ORDER_ID} INTEGER, 
+             {ItemKeys.EXERCISE_NAME} TEXT, 
+             {ItemKeys.SET_ID} INTEGER, 
+             {ItemKeys.WEIGHT_KG} REAL, 
+             {ItemKeys.REPS_COUNT} INTEGER, 
+             {ItemKeys.DROPDOWN_WEIGHT_KG} REAL, 
+             {ItemKeys.DROPDOWN_REPS_COUNT} INTEGER)''')
         
         # Insert default exercises
         for exercise in exercise_list:

@@ -1,7 +1,7 @@
 # ui.py
 import streamlit as streamlit_client
 from datetime import datetime, time
-from config import PRIM_MUSCLE_GROUPS, SEC_MUSCLE_GROUPS, UNKNOWN_EXERCISE
+from config import PRIM_MUSCLE_GROUPS, SEC_MUSCLE_GROUPS, UNKNOWN_EXERCISE, ItemKeys
 from utils import filter_exercises_by_group
 
 class StreamlitUI:
@@ -103,14 +103,14 @@ class StreamlitUI:
                     
                     if exercise_name is not None:
                         exercise_records.append({
-                            'exercise_order_id': i,
-                            'exercise_name': exercise_name,
-                            'sets': [
+                            ItemKeys.EXERCISE_ORDER_ID: i,
+                            ItemKeys.EXERCISE_NAME: exercise_name,
+                            ItemKeys.SETS: [
                                 {
-                                    'weight_kg': weight,
-                                    'reps_count': reps,
-                                    'dropdown_weight_kg': weight_dropdown,
-                                    'dropdown_reps_count': reps_dropdown
+                                    ItemKeys.WEIGHT_KG: weight,
+                                    ItemKeys.REPS_COUNT: reps,
+                                    ItemKeys.DROPDOWN_WEIGHT_KG: weight_dropdown,
+                                    ItemKeys.DROPDOWN_REPS_COUNT: reps_dropdown
                                 }
                                 for weight, reps, weight_dropdown, reps_dropdown in zip(
                                     [weight for _ in range(set_count)],

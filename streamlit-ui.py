@@ -22,18 +22,15 @@ This file will be used for planning only.
 # - BUG: values in database are not correct, different from the input
 # - Deploy the app to streamlit public
 
-# Epic: Users
+# Epic: Users Table
 # - Create table: user: username, tier
 # - Change username in LiftingSet to user_id, FK to user table
 
 # Epic: Exercises
-# - Function: Add default exercises for all new users, before adding to user table (sign up function)
+# - Function: Add default exercises, when new user is created.
 # - Function: Add new exercise to the database by (username, exercise_name)
 # - Validation - add new exercise: selected exercise name must be "[Unknown] Exercise not existed"    
 # - Validation - add new exercise: only add to database if `exercise_name` is provided (not None)
-
-# Epic: Code Refactor, for better code quality and maintainability
-# - Refactor: Create Global Variables for all config values. e.g. exercise_count, set_count, exercise_list, db_name, admin_username
 
 # ==================
 
