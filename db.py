@@ -70,6 +70,18 @@ class LiftingSetsEachDay:
             
     def to_lifting_sets(self):
         return self.lift_sets
+    
+class UserModel:
+    """
+    Manage user information, including
+        . username  
+        . tier (admin, user)
+    """
+    table_name = 'users'
+    sqlite_types = {
+            ItemKeys.USERNAME: 'TEXT',
+            ItemKeys.TIER: 'TEXT'
+        }
 
     
 class ExerciseDB:
@@ -79,6 +91,7 @@ class ExerciseDB:
         self.admin_username = admin_username
         self.conn = sqlite3.connect(db_name)
         self.cursor = self.conn.cursor()
+        self.user_model = UserModel()
 
         self.create_tables(exercise_list=self.default_exercises, 
                            admin_username=self.admin_username)
@@ -140,6 +153,16 @@ class ExerciseDB:
 
         self.conn.commit()
 
+    def create_user_table(self):
+        ''' Create user table if not exists '''
+
+        create_table_comand = f"CREATE TABLE IF NOT EXISTS {self.user_model.table_name}"
+        create_table_comand += " (id INTEGER PRIMARY KEY, {} )".format(', '.join([f"{key} {value}" for key, value in self.user_model.sqlite_types.items()]))
+        print(f"DB Status: {create_table_comand}")
+        self.cursor.execute(create_table_comand)
+        self.conn.commit()
+        # print(f"DB Status: Created table {self.user_model.table_name}")
+
     def get_data(self, table_name, username: str = None):
         if username is not None:
             self.cursor.execute(f"SELECT * FROM {table_name} WHERE username = '{username}'")
@@ -166,3 +189,9 @@ class ExerciseDB:
             self.cursor.execute(f"DROP TABLE IF EXISTS {db_name}")
 
         self.create_tables(exercise_list=self.default_exercises, admin_username=username)
+
+if __name__ == "__main__":
+
+    # Example usage
+    db = ExerciseDB(db_name="exercise.db", exercise_list=["Bench Press", "Squat", "Deadlift"], admin_username="admin")
+    db.create_user_table()

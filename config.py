@@ -40,3 +40,4 @@ class ItemKeys:
     REPS_COUNT = "reps_count"
     DROPDOWN_WEIGHT_KG = "dropdown_weight_kg"
     DROPDOWN_REPS_COUNT = "dropdown_reps_count"
+    TIER = "tier"

@@ -25,6 +25,7 @@ This file will be used for planning only.
 # Epic: Users Table
 # - Create table: user: username, tier
 # - Change username in LiftingSet to user_id, FK to user table
+# - Re-structure tables code:  create_all_tables --call--> create_table(table_name) for table in self.table_names
 
 # Epic: Exercises
 # - Function: Add default exercises, when new user is created.
@@ -43,5 +44,6 @@ This file will be used for planning only.
 # - Add 'required' tag to required fields: username, primary muscle group, secondary muscle group
 # - Update the UI: time input confirmation, to "You trained from A to B, duration {B-A}"
 # - Rename the files to more meaningful names: streamlit-ui.py -> Lifting_Submission.py, View_DB.py -> View_Data.py
+# - Convert to using SQModel for better management (this solution = sqlite x pydantic )
 
 # ====================================
