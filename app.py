@@ -20,6 +20,14 @@ def main():
         # st.error("Enter your username.")
         return
     
+    # TODO: Process username to check if it exists in the database
+    #  - Exists: get exercises of the user
+    #  - Not exists: add new user to the database, add default exercises to the database
+    if not db.user_exists(username):
+        db.add_user(username, tier='user')
+
+    user_exercise_list = db.get_user_exercise_list(username)
+
     date = ui.input_date()
     time_range = ui.input_time()
     primary_muscle, secondary_muscle = ui.input_muscle_groups()
@@ -27,7 +35,7 @@ def main():
     if not primary_muscle and not secondary_muscle:
         return
 
-    submit_button, exercise_records = ui.input_exercises(EXERCISE_LIST, primary_muscle, secondary_muscle,
+    submit_button, exercise_records = ui.input_exercises(user_exercise_list, primary_muscle, secondary_muscle,
                                                          exercise_count=NUM_EXERCISES, set_count=NUM_SETS)
 
     if submit_button:

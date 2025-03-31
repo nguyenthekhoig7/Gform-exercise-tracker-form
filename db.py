@@ -147,6 +147,8 @@ class ExerciseDB:
              {ItemKeys.DROPDOWN_WEIGHT_KG} REAL, 
              {ItemKeys.DROPDOWN_REPS_COUNT} INTEGER)''')
         
+        self.create_user_table()
+
         # Insert default exercises
         for exercise in exercise_list:
             self.add_exercise(username=admin_username, exercise_name=exercise)
@@ -189,6 +191,38 @@ class ExerciseDB:
             self.cursor.execute(f"DROP TABLE IF EXISTS {db_name}")
 
         self.create_tables(exercise_list=self.default_exercises, admin_username=username)
+
+    def add_user(self, username: str, tier: str):
+        ''' Add user to the database if not exists '''
+        # Check if user already exists
+        self.cursor.execute(f"SELECT * FROM {self.user_model.table_name} WHERE {ItemKeys.USERNAME} = '{username}'")
+        if self.cursor.fetchone() is not None:
+            print(f"DB Status: User {username} already exists")
+            return True
+        else:
+            self.cursor.execute(f"INSERT INTO {self.user_model.table_name} ({ItemKeys.USERNAME}, {ItemKeys.TIER}) VALUES ('{username}', '{tier}')")
+            self.conn.commit()
+
+            self.add_default_exercises(username=username)
+            print(f"DB Status: Added user: {username} with tier: {tier} to {self.user_model.table_name} and added default exercises")
+
+    def add_default_exercises(self, username: str):
+        ''' Add default exercises to the user '''
+        for exercise in self.default_exercises:
+            self.add_exercise(username=username, exercise_name=exercise)
+
+    def get_user_exercise_list(self, username: str):
+        ''' Fetch exercise list for a user '''
+        self.cursor.execute(f"SELECT exercise_name FROM exercises WHERE username = '{username}'")
+        rows = self.cursor.fetchall()
+        print(f"DB Status: Fetched exercise list for user {username}: \n{rows}")
+        return [row[0] for row in rows]
+    
+    def user_exists(self, username: str):
+        ''' Check if user exists in the database '''
+        self.cursor.execute(f"SELECT * FROM {self.user_model.table_name} WHERE {ItemKeys.USERNAME} = '{username}'")
+        return self.cursor.fetchone() is not None
+
 
 if __name__ == "__main__":
 
