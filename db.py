@@ -97,20 +97,20 @@ class ExerciseDB:
                            admin_username=self.admin_username)
 
     def add_exercise(self, username, exercise_name):
-
+        print(f"DB Status: Adding exercise {exercise_name} for user {username}")
         # Check if exercise already exists
         self.cursor.execute(
             f"SELECT * FROM exercises WHERE {ItemKeys.USERNAME} = ? AND {ItemKeys.EXERCISE_NAME} = ?", 
             (username, exercise_name,))
         
         if self.cursor.fetchone() is not None:
-            # print(f"DB Status: Exercise {exercise_name} already exists")
+            print(f"DB Status: Exercise {exercise_name} already exists for user {username}")
             return True
         else:
             self.cursor.execute("INSERT OR REPLACE INTO exercises (username, exercise_name) VALUES (?, ?)", (ItemKeys.USERNAME, ItemKeys.EXERCISE_NAME,))
 
+            print(f"DB Status: Added exercise: {exercise_name}")
         self.conn.commit()  
-        # print(f"DB Status: Added exercise: {exercise_name}")
 
     def add_set(self, lifting_set: LiftingSet):
         self.cursor.execute("INSERT INTO lifting_sets ({}, {}, {}, {}, {}, {}, {}, {}, {}, {}) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)".format(
@@ -206,10 +206,25 @@ class ExerciseDB:
             self.add_default_exercises(username=username)
             print(f"DB Status: Added user: {username} with tier: {tier} to {self.user_model.table_name} and added default exercises")
 
+            
+            # Just for debugging, remove later
+            self.cursor.execute(f"SELECT * FROM {self.user_model.table_name}")
+            rows = self.cursor.fetchall()
+            print(f"DB Status: {self.user_model.table_name} data: \n{rows}")
+            return True
+
     def add_default_exercises(self, username: str):
         ''' Add default exercises to the user '''
+        print(f"add_default_exercises: {username}")
         for exercise in self.default_exercises:
             self.add_exercise(username=username, exercise_name=exercise)
+
+        print(f"DB Status: Added default exercises for user {username}: {self.default_exercises}")
+
+        # Just for debugging, remove later
+        self.cursor.execute(f"SELECT * FROM exercises WHERE username = '{username}'")
+        rows = self.cursor.fetchall()
+        print(f"DB Status: exercises data: \n{rows}")
 
     def get_user_exercise_list(self, username: str):
         ''' Fetch exercise list for a user '''

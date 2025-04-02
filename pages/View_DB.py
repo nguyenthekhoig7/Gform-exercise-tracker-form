@@ -32,7 +32,7 @@ if view_data_button and username:
         all_table_names = db.get_all_table_name()
         st.markdown("**Database data**")
         for table in all_table_names:
-            data_with_columns = db.get_data(table_name = table, username=ADMIN_USERNAME)
+            data_with_columns = db.get_data(table_name = table, username=username)
 
             st.markdown(f"Table: **{table}**")
             _, col = st.columns([1, 19])
@@ -50,7 +50,7 @@ if view_data_button and username:
             st.markdown(f"Table: **{table}**")
             _, col = st.columns([1, 19])
             with col:
-                st.dataframe(data_with_columns, hide_index=True)
+                st.dataframe(data_with_columns, hide_index=True, use_container_width=True)
 
 if clear_db_button and username:
     # Verify if the user is admin
