@@ -30,9 +30,11 @@ NUM_SETS = config['set_count']
 # Public configs
 class ItemKeys:
     USERNAME = "username"
+    USER_ID = "user_id"
     DATE = "date"
     TIME = "time"
     EXERCISE_ORDER_ID = "exercise_order_id"
+    EXERCISE_ID = "exercise_id"
     EXERCISE_NAME = "exercise_name"
     SETS = "sets"
     SET_ID = "set_id"

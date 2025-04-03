@@ -12,6 +12,7 @@ def main():
 
     ui = StreamlitUI(st)
     validator = InputValidator()
+    
     db = ExerciseDB(DB_NAME, exercise_list=EXERCISE_LIST, admin_username=ADMIN_USERNAME)
 
     username = ui.input_username()
@@ -19,7 +20,9 @@ def main():
     if not username:
         # st.error("Enter your username.")
         return
-    
+    print(f"Username: {username}")
+
+
     # TODO: Process username to check if it exists in the database
     #  - Exists: get exercises of the user
     #  - Not exists: add new user to the database, add default exercises to the database

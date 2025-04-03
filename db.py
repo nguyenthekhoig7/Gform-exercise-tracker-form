@@ -71,7 +71,11 @@ class LiftingSetsEachDay:
     def to_lifting_sets(self):
         return self.lift_sets
     
-class UserModel:
+class TableModel:
+    table_name: str
+    sqlite_types: dict
+
+class UserModel(TableModel):
     """
     Manage user information, including
         . username  
@@ -83,6 +87,45 @@ class UserModel:
             ItemKeys.TIER: 'TEXT'
         }
 
+class LiftingSetModel(TableModel):
+    """
+    Manage lifting set information, including
+        . username -> user_id
+        . date
+        . time
+        . exercise_order_id
+        . exercise_name -> exercise_id
+        . set_id
+        . weight_kg
+        . reps_count
+        . dropdown_weight_kg
+    """
+    table_name = 'lifting_sets'
+    sqlite_types = {
+            ItemKeys.USERNAME: 'TEXT',
+            ItemKeys.DATE: 'TEXT',
+            ItemKeys.TIME: 'TEXT',
+            ItemKeys.EXERCISE_ORDER_ID: 'INTEGER',
+            ItemKeys.EXERCISE_NAME: 'TEXT',
+            ItemKeys.SET_ID: 'INTEGER',
+            ItemKeys.WEIGHT_KG: 'REAL',
+            ItemKeys.REPS_COUNT: 'INTEGER',
+            ItemKeys.DROPDOWN_WEIGHT_KG: 'REAL',
+            ItemKeys.DROPDOWN_REPS_COUNT: 'INTEGER'
+        }
+
+class ExerciseModel(TableModel):
+    """
+    Manage exercise information, including
+        . username  
+        . exercise_name
+    """
+    table_name = 'exercises'
+    sqlite_types = {
+            ItemKeys.USERNAME: 'TEXT',
+            ItemKeys.EXERCISE_NAME: 'TEXT'
+        }
+
     
 class ExerciseDB:
 
@@ -91,26 +134,27 @@ class ExerciseDB:
         self.admin_username = admin_username
         self.conn = sqlite3.connect(db_name)
         self.cursor = self.conn.cursor()
-        self.user_model = UserModel()
 
+        self.user_model = UserModel()
+        self.exercise_model = ExerciseModel()
+        self.lifting_set_model = LiftingSetModel()
         self.create_tables(exercise_list=self.default_exercises, 
                            admin_username=self.admin_username)
 
     def add_exercise(self, username, exercise_name):
-        print(f"DB Status: Adding exercise {exercise_name} for user {username}")
-        # Check if exercise already exists
         self.cursor.execute(
             f"SELECT * FROM exercises WHERE {ItemKeys.USERNAME} = ? AND {ItemKeys.EXERCISE_NAME} = ?", 
             (username, exercise_name,))
         
         if self.cursor.fetchone() is not None:
-            print(f"DB Status: Exercise {exercise_name} already exists for user {username}")
-            return True
+            # print(f"DB Status: Exercise {exercise_name} already exists for user {username}")
+            return False
         else:
-            self.cursor.execute("INSERT OR REPLACE INTO exercises (username, exercise_name) VALUES (?, ?)", (ItemKeys.USERNAME, ItemKeys.EXERCISE_NAME,))
+            self.cursor.execute("INSERT INTO exercises (username, exercise_name) VALUES (?, ?)", (ItemKeys.USERNAME, ItemKeys.EXERCISE_NAME,))
 
-            print(f"DB Status: Added exercise: {exercise_name}")
-        self.conn.commit()  
+            print(f"DB Status: Added exercise: {exercise_name} for user {username}")
+            self.conn.commit()  
+            return True
 
     def add_set(self, lifting_set: LiftingSet):
         self.cursor.execute("INSERT INTO lifting_sets ({}, {}, {}, {}, {}, {}, {}, {}, {}, {}) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)".format(
@@ -130,24 +174,16 @@ class ExerciseDB:
         ''' Create table if not exists
         Add default exercises to the exercises table
         '''
+        print(f"DB Status: Creating tables")
         
-        self.cursor.execute('''CREATE TABLE IF NOT EXISTS exercises
-             (id INTEGER PRIMARY KEY, username TEXT, exercise_name TEXT)''')
+        self.create_table(self.user_model)
+        self.create_table(self.exercise_model)
+        self.create_table(self.lifting_set_model)
         
-        self.cursor.execute(f'''CREATE TABLE IF NOT EXISTS lifting_sets
-             (id INTEGER PRIMARY KEY, 
-             {ItemKeys.USERNAME} TEXT, 
-             {ItemKeys.DATE} TEXT, 
-             {ItemKeys.TIME} TEXT, 
-             {ItemKeys.EXERCISE_ORDER_ID} INTEGER, 
-             {ItemKeys.EXERCISE_NAME} TEXT, 
-             {ItemKeys.SET_ID} INTEGER, 
-             {ItemKeys.WEIGHT_KG} REAL, 
-             {ItemKeys.REPS_COUNT} INTEGER, 
-             {ItemKeys.DROPDOWN_WEIGHT_KG} REAL, 
-             {ItemKeys.DROPDOWN_REPS_COUNT} INTEGER)''')
-        
-        self.create_user_table()
+        # Insert admin user if not exists
+        if not self.user_exists(admin_username):
+            self.add_user(username=admin_username, tier='admin')
+            print(f"DB Status: Added admin user: {admin_username}")
 
         # Insert default exercises
         for exercise in exercise_list:
@@ -155,15 +191,16 @@ class ExerciseDB:
 
         self.conn.commit()
 
-    def create_user_table(self):
-        ''' Create user table if not exists '''
+    
 
-        create_table_comand = f"CREATE TABLE IF NOT EXISTS {self.user_model.table_name}"
-        create_table_comand += " (id INTEGER PRIMARY KEY, {} )".format(', '.join([f"{key} {value}" for key, value in self.user_model.sqlite_types.items()]))
-        print(f"DB Status: {create_table_comand}")
+    def create_table(self, table_model: TableModel):
+        ''' Create table if not exists '''
+        create_table_comand = f"CREATE TABLE IF NOT EXISTS {table_model.table_name}"
+        create_table_comand += " (id INTEGER PRIMARY KEY, {} )".format(', '.join([f"{key} {value}" for key, value in table_model.sqlite_types.items()]))
+        # print(f"DB Status: {create_table_comand}")
         self.cursor.execute(create_table_comand)
         self.conn.commit()
-        # print(f"DB Status: Created table {self.user_model.table_name}")
+        # print(f"DB Status: Created table {table_model.table_name}")
 
     def get_data(self, table_name, username: str = None):
         if username is not None:
@@ -236,7 +273,7 @@ class ExerciseDB:
     def user_exists(self, username: str):
         ''' Check if user exists in the database '''
         self.cursor.execute(f"SELECT * FROM {self.user_model.table_name} WHERE {ItemKeys.USERNAME} = '{username}'")
-        return self.cursor.fetchone() is not None
+        return self.cursor.fetchone() is not None and len(self.cursor.fetchone()) > 0
 
 
 if __name__ == "__main__":

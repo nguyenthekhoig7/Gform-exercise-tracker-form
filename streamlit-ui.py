@@ -18,6 +18,7 @@ This file will be used for planning only.
 # ==================
 
 # [Requirements] [high priority]
+# - Add db to session state --> avoid re-creating db every time the page is loaded
 # - BUG: When adding new sets, only first set of first exercise is added to the database, the rest are not added
 # - BUG: values in database are not correct, different from the input
 # - Deploy the app to streamlit public
