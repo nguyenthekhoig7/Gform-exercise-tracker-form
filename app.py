@@ -13,8 +13,10 @@ def main():
     ui = StreamlitUI(st)
     validator = InputValidator()
     
-    db = ExerciseDB(DB_NAME, exercise_list=EXERCISE_LIST, admin_username=ADMIN_USERNAME)
-
+    # Create a database instance in the session state if it doesn't exist
+    if 'db' not in st.session_state:
+        st.session_state.db = ExerciseDB(DB_NAME, exercise_list=EXERCISE_LIST, admin_username=ADMIN_USERNAME)
+    
     username = ui.input_username()
     
     if not username:
@@ -22,14 +24,10 @@ def main():
         return
     print(f"Username: {username}")
 
+    if not st.session_state.db.user_exists(username):
+        st.session_state.db.add_user(username, tier='user')
 
-    # TODO: Process username to check if it exists in the database
-    #  - Exists: get exercises of the user
-    #  - Not exists: add new user to the database, add default exercises to the database
-    if not db.user_exists(username):
-        db.add_user(username, tier='user')
-
-    user_exercise_list = db.get_user_exercise_list(username)
+    user_exercise_list = st.session_state.db.get_user_exercise_list(username)
 
     date = ui.input_date()
     time_range = ui.input_time()
@@ -54,7 +52,7 @@ def main():
             # Add the data to the database
             lifting_day = LiftingSetsEachDay(username, date, time_range, exercise_records)
             all_lift_sets = lifting_day.to_lifting_sets()
-            db.add_lifting_sets(all_lift_sets)
+            st.session_state.db.add_lifting_sets(all_lift_sets)
 
             # Display the results
             with st.expander('Results'):

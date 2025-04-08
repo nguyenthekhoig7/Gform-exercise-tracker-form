@@ -132,7 +132,8 @@ class ExerciseDB:
     def __init__(self, db_name, exercise_list: list, admin_username: str):
         self.default_exercises = exercise_list
         self.admin_username = admin_username
-        self.conn = sqlite3.connect(db_name)
+        check_same_thread = False # Overcome the error caused by Flask's multithread: sqlite3.ProgrammingError: SQLite objects created in a thread can only be used in that same thread.
+        self.conn = sqlite3.connect(db_name, check_same_thread=check_same_thread)
         self.cursor = self.conn.cursor()
 
         self.user_model = UserModel()
@@ -273,7 +274,12 @@ class ExerciseDB:
     def user_exists(self, username: str):
         ''' Check if user exists in the database '''
         self.cursor.execute(f"SELECT * FROM {self.user_model.table_name} WHERE {ItemKeys.USERNAME} = '{username}'")
-        return self.cursor.fetchone() is not None and len(self.cursor.fetchone()) > 0
+        result = self.cursor.fetchone()  # Fetch the result once
+
+        if result is None:
+            return False
+        else:
+            return len(result) > 0
 
 
 if __name__ == "__main__":
