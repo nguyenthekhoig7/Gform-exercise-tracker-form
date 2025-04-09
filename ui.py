@@ -113,10 +113,10 @@ class StreamlitUI:
                                     ItemKeys.DROPDOWN_REPS_COUNT: reps_dropdown
                                 }
                                 for weight, reps, weight_dropdown, reps_dropdown in zip(
-                                    [weight for _ in range(set_count)],
-                                    [reps for _ in range(set_count)],
-                                    [weight_dropdown for _ in range(set_count)],
-                                    [reps_dropdown for _ in range(set_count)]
+                                    [self.st.session_state.get(f"weight_{i}_{set_j}") for set_j in range(set_count)],
+                                    [self.st.session_state.get(f"reps_{i}_{set_j}") for set_j in range(set_count)],
+                                    [self.st.session_state.get(f"weight_{i}_{set_j}_dropdown") for set_j in range(set_count)],
+                                    [self.st.session_state.get(f"reps_{i}_{set_j}_dropdown") for set_j in range(set_count)]
                                 )
                             ]
                         })
