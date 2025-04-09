@@ -151,7 +151,9 @@ class ExerciseDB:
             # print(f"DB Status: Exercise {exercise_name} already exists for user {username}")
             return False
         else:
-            self.cursor.execute("INSERT INTO exercises (username, exercise_name) VALUES (?, ?)", (ItemKeys.USERNAME, ItemKeys.EXERCISE_NAME,))
+            insert_command = f"INSERT INTO exercises ({ItemKeys.USERNAME}, {ItemKeys.EXERCISE_NAME}) VALUES (?, ?)"
+            insert_command_with_values = (insert_command, (username, exercise_name,))
+            self.cursor.execute(*insert_command_with_values)
 
             print(f"DB Status: Added exercise: {exercise_name} for user {username}")
             self.conn.commit()  
@@ -186,7 +188,7 @@ class ExerciseDB:
             self.add_user(username=admin_username, tier='admin')
             print(f"DB Status: Added admin user: {admin_username}")
 
-        # Insert default exercises
+        # Insert default exercises for admin user if not exists
         for exercise in exercise_list:
             self.add_exercise(username=admin_username, exercise_name=exercise)
 

@@ -18,8 +18,7 @@ This file will be used for planning only.
 # ==================
 
 # [Requirements] [high priority]
-# - BUG: Default exercise list is not loaded when adding new user
-# - BUG: When adding new sets, only first set of first exercise is added to the database, the rest are not added
+# - BUG: When adding new sets, only first set of first exercise is added to the database, the rest are the same value of the first set
 # - BUG: values in database are not correct, different from the input
 # - Deploy the app to streamlit public
 
