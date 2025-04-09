@@ -5,33 +5,39 @@ import streamlit as st
 # Add the parent directory to sys.path
 import sys
 sys.path.append('..')
-from utils import load_st_config
+from config import DB_NAME, EXERCISE_LIST, ADMIN_USERNAME
 from db import ExerciseDB
-
-config = load_st_config(st)
-db_name = config['db_name']
-admin_username = config['admin_username']
-exercise_list = config['exercise_list']
 
 st.set_page_config(page_title='View Lifting Data')
 st.title('View Lifting Data')
 
-# Input username to view all the data
-username = st.text_input('Enter your username')
+# Add a form wtih 2 buttons, one to view all the data, and one to clear the database
+with st.form(key='view_data_form'):
+    # Input username to view all the data
+    username = st.text_input('Enter your username')
 
-db = ExerciseDB(db_name, exercise_list=exercise_list, admin_username=admin_username)
+    # Left button to view the data, right button to reset the database, in columns
+    _, col1, _,  col2 = st.columns([1, 4, 1, 3])
+    view_data_button = col1.form_submit_button('View Data')
+    
+    with col2:
+        # Put the reset database button in a colapsed expander
+        with st.expander("Advanced Option", expanded=False):
+            clear_db_button = st.form_submit_button('Reset Database')
 
-if username:
-    if username == admin_username:
+db = ExerciseDB(DB_NAME, exercise_list=EXERCISE_LIST, admin_username=ADMIN_USERNAME)
+
+if view_data_button and username:
+    if username == ADMIN_USERNAME:
         all_table_names = db.get_all_table_name()
         st.markdown("**Database data**")
         for table in all_table_names:
-            data_with_columns = db.get_data(table_name = table, username=admin_username)
+            data_with_columns = db.get_data(table_name = table, username=username)
 
             st.markdown(f"Table: **{table}**")
             _, col = st.columns([1, 19])
             with col:   
-                st.dataframe(data_with_columns)
+                st.dataframe(data_with_columns, hide_index=True, use_container_width=True)
 
 
     else:
@@ -43,12 +49,13 @@ if username:
 
             st.markdown(f"Table: **{table}**")
             _, col = st.columns([1, 19])
-            with col:   
-                st.dataframe(data_with_columns)
+            with col:
+                st.dataframe(data_with_columns, hide_index=True, use_container_width=True)
 
-# def show_data(username: str):
-#     cursor.execute("SELECT * FROM lifting_sets WHERE username = ?", (username,))
-#     rows = cursor.fetchall()
-#     columns = [description[0] for description in cursor.description]
-#     data_with_columns = pd.DataFrame(rows, columns = columns)
-#     st.dataframe(data_with_columns)
+if clear_db_button and username:
+    # Verify if the user is admin
+    if username == ADMIN_USERNAME:
+        db.reset_db(username, 'all')
+        st.write("Database cleared successfully!")
+    else:
+        st.write("Only admin can clear the database!")
