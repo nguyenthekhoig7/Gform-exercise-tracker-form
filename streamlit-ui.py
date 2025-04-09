@@ -18,21 +18,16 @@ This file will be used for planning only.
 # ==================
 
 # [Requirements] [high priority]
-# - BUG: When adding new sets, only first set of first exercise is added to the database, the rest are the same value of the first set
-# - BUG: values in database are not correct, different from the input
 # - Deploy the app to streamlit public
 
 # Epic: Users Table
-# - Create table: user: username, tier
-# - Change username in LiftingSet to user_id, FK to user table
-# - Re-structure tables code:  create_all_tables --call--> create_table(table_name) for table in self.table_names
+# - FK Constraint: Change username in LiftingSet to user_id, FK to user table
 
 # Epic: Exercises
-# - Function: Add default exercises, when new user is created.
 # - Function: Add new exercise to the database by (username, exercise_name)
 # - Validation - add new exercise: selected exercise name must be "[Unknown] Exercise not existed"    
 # - Validation - add new exercise: only add to database if `exercise_name` is provided (not None)
-
+# - Validation - select exercise: do not allow the same exercise name to be selected multiple times in the same day
 # ==================
 
 # [Enhancements] [medium priority]
@@ -45,5 +40,5 @@ This file will be used for planning only.
 # - Update the UI: time input confirmation, to "You trained from A to B, duration {B-A}"
 # - Rename the files to more meaningful names: streamlit-ui.py -> Lifting_Submission.py, View_DB.py -> View_Data.py
 # - Convert to using SQModel for better management (this solution = sqlite x pydantic )
-
+# - Time input: custom the range for easier selection, min=14h00, max=21h00 (because I never exercised in the morning)
 # ====================================
