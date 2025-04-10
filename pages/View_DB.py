@@ -11,6 +11,9 @@ from db import ExerciseDB
 st.set_page_config(page_title='View Lifting Data')
 st.title('View Lifting Data')
 
+# Just for debugging
+print(f"Starting the app...")
+
 # Add a form wtih 2 buttons, one to view all the data, and one to clear the database
 with st.form(key='view_data_form'):
     # Input username to view all the data
