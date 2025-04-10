@@ -13,6 +13,9 @@ def main():
     st.set_page_config(page_title='Lifting Tracker', page_icon='🏋️')
     st.title('Lifting Data Submission')
 
+    # Just for debugging
+    print("Starting the app...")
+
     ui = StreamlitUI(st)
     validator = InputValidator()
     
