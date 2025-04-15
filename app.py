@@ -5,9 +5,6 @@ from db import ExerciseDB
 from db import LiftingSetsEachDay
 import streamlit_nested_layout # To use nested layout in exercise details input
 from config import DB_NAME, EXERCISE_LIST, ADMIN_USERNAME, PRIM_MUSCLE_GROUPS, SEC_MUSCLE_GROUPS, NUM_EXERCISES, NUM_SETS
-import logging
-
-streamlit_root_logger = logging.getLogger(st.__name__)
 
 def main():
     st.set_page_config(page_title='Lifting Tracker', page_icon='🏋️')
@@ -19,8 +16,6 @@ def main():
     ui = StreamlitUI(st)
     validator = InputValidator()
     
-    streamlit_root_logger.debug("Starting the app UI...")
-
     # Create a database instance in the session state if it doesn't exist
     if 'db' not in st.session_state:
         st.session_state.db = ExerciseDB(DB_NAME, exercise_list=EXERCISE_LIST, admin_username=ADMIN_USERNAME)
