@@ -9,7 +9,7 @@ from config import DB_NAME, EXERCISE_LIST, ADMIN_USERNAME
 from db import ExerciseDB
 import logging
 
-streamlit_root_logger = logging.getLogger(st.__name__)
+streamlit_root_logger = logging.getLogger()
 
 streamlit_root_logger.debug("Starting the app UI...")
 
